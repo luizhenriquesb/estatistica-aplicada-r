@@ -6,7 +6,7 @@ editor: visual
 
 ### Regressão Linear Simples
 
-R.L simples é o modelo de regressão que contém apenas uma única v. independente. Vamos ter, então, uma v. independente, uma v. que queremos prever e uma v. dependente.
+R.L simples é o modelo de regressão que contém apenas uma única v. independente. Vamos ter, então, uma v. independente, uma v. que queremos prever e uma v. dependente.AA
 
 ### Carregando pacotes
 
