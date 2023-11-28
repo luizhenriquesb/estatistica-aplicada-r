@@ -1,0 +1,176 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+---
+
+### Regressão Linear Simples
+
+R.L simples é o modelo de regressão que contém apenas uma única v. independente. Vamos ter, então, uma v. independente, uma v. que queremos prever e uma v. dependente.
+
+### Carregando pacotes
+
+```{r, message=FALSE, warning=FALSE}
+library(pacman)
+
+# Essa função faz o download dos pacotes que não temos e depois carrega eles (se já tivermos os pacotes baixados, essa função já carrega os pacotes)
+pacman::p_load(dplyr, ggplot2, car, rstatix, lmtest, ggpubr)
+```
+
+### Importando a base de dados
+
+```{r}
+dados <- read.csv2("~/estatistica-aplicada-r/dados/Banco_de_Dados_11.csv")
+```
+
+Essa base contém informações de 200 CDs comercializados por uma gravadora. A ideia é verificar se o gasto em publicidade é capaz de prever a venda de CDs.
+
+```{r}
+# Visualiando as variáveis
+glimpse(dados)
+```
+
+### Verificação dos pressupostos para a regressão linear
+
+A validade do modelo de regressão linear depende da satisfação de alguns pressupostos.
+
+#### Relação linear entre a variável dependente e a independente
+
+É necessário existir uma relação linear entre a VD e a VI. Em nosso exemplo, temos:
+
+-   V. dependente: variável que queremos prever (venda)
+
+-   V. independente: variável que imaginamos influenciar a venda (publicidade)
+
+Para verificar a linearidade, podemos plotar a relação entre nossas variáveis em um gráfico.
+
+```{r, fig.align='center'}
+plot(dados$Publicidade, dados$Vendas)
+```
+
+Aparentemente, nossas variáveis apresentam uma relação linear. No entanto, a interpretação do gráfico acima é uma pouca subjetiva.
+
+Vamos ver outra maneira de verificar graficamente a linearidade das variáveis. Para isso, no entanto, vamos ter que criar nosso modelo de regressão linear.
+
+#### Construção do modelo
+
+A função `lm()` é uma função de regressão linear (linear model). A sintaxe dessa função é a seguinte: `lm(variável dependente ~ variável independente, data = dados)`
+
+```{r}
+# Criando nosso modelo
+mod <- lm(Vendas ~ Publicidade, data = dados)
+```
+
+#### Análise gráfica (para verificar os pressupostos)
+
+O código abaixo plota quatro gráficos que nos ajudarão a analisar os pressupostos.
+
+```{r, fig.align='center'}
+# Plota os quatro gráficos numa mesma imagem
+par(mfrow = c(2,2)) # 2,2 = 2 linhas e 2 colunas
+
+plot(mod)
+```
+
+Para uma interpretação detalhada: https://library.virginia.edu/data/articles/diagnostic-plots.
+
+##### 1. Residuals vs Fitted
+
+Gráfico dos resíduos pelos valores previstos que permite analisar a **linearidade** e a **homocedasticidade**.
+
+-   Linearidade: verificarmos a lineralidade pela linha vermelha. Se ela estiver aprox. horizontal, temos uma relação linear
+
+-   Homocedasticidade: homogeneidade de variâncias. Existe homocedasticidade se a dispersão de pontos no gráfico é constante ao longo dos valores previstos de $y$ (eixo x do gráfico, fitted values)
+
+Se não existisse homocedasticidade das variancia, teríamos heterocedasticidade
+
+##### 2. Normal Q-Q
+
+Permite ver se os residuos tem distribuição normal
+
+-   Eixo y: os residuos padronizados
+-   Eixo x: os resuiduos teóricos (residuos esperados caso a dist. fosse normal)
+
+Os residuos tem distribuição normal se os pontos estão em cima da reta pontilhada do grafico
+
+##### 3. Scale-Location
+
+Gráfico mais recomendado para verificar a homocedasticidade. Caso exista homocedasticidade, a linha vermelha deve ser aproximadamente horizontal.
+
+-   Eixo y: raiz quadrada dos residuos padronizados
+-   Eixo x: os valores previstos
+
+##### 4. Residuals vs Leverage
+
+Permite verificar se existe resíduos outliers e se existe pontos de alavangagem.
+
+Pressuposto da regressão linear: não deve existir resíduos outliers (mas até tudo bem se tiver).
+
+O que não pode acontecer é existir residuos outliers que são pontos influentes ou ponto de alavancagem (pontos que são tão outliers que estão influenciando a estimação). Existe outlier se existirem residuos abaixo de -3 ou acima de 3.
+
+Existem pontos de alavancagem se existirem residuos padronizados fora da linha vermelha pontilhada. Além disso, o R vai colocar um número de id em cima do residuo que foge do pdrão.
+
+### Testes (para verificar os pressupostos)
+
+Vamos, agora, plotar um gráfico de cada vez.
+
+```{r}
+# a partir de agora cada plot vai ter apenas um grafico
+par(mfrow = c(1,1))
+```
+
+#### 1. Normalidade dos resíduos (shapiro.test)
+
+O pressuposto da regressão linear é de normalidade dos **resíduos** e não das variáveis. Portanto, vamos fazer um teste de normalidade em cima dos resíduos.
+
+```{r}
+shapiro.test(mod$residuals)
+```
+
+-   H0: dist. = normal -\> p \> 0.05
+-   H1: dist. != normal -\> p \<= 0.05
+
+#### 2. Outliers nos resíduos
+
+```{r, results='hide'}
+# Faz para cada um dos casos
+rstandard(mod)
+```
+
+```{r}
+# Faz um resumo geral (mais interessante!)
+summary(rstandard(mod))
+```
+
+Com esse resumo, é possível verificar que os resíduos não são menores que -3 e nem maiores que 3. Além disso, é um bom indicativo o fato da mediana estar próxima de 0 (zero).
+
+#### 3. Independência dos resíduos
+
+Existe uma literatura que vai dizer que satisfazer esse pressuposto é necessario somente se vamos fazer uma anailse longitudinal.
+
+```{r}
+durbinWatsonTest(mod)
+```
+
+D-W Statistic: deve estar próxima de 2 para existir independência dos residuos tem que estar entre 1 e 3
+
+**P-value:** está verificando a correlação entre os residuos
+
+-   p-value \> 0.05: não rejeitar a hipótese nula
+-   p-value \< 0.05: rejeitar a hipótese nula
+
+Hipóteses nula e alternativa:
+
+-   H0: corr = 0
+-   H1: corr != 0
+
+Para satisfazer esse pressuposto queremos p-value \> 0.05
+
+#### 4. Homocedasticidade (Breusch-Pagan)
+
+-   H0: existe homocedasticidade -\> p \> 0.05
+-   H1: NÃO existe homocedasticidade -\> p \<= 0.05
+
+```{r}
+bptest(mod)
+```
