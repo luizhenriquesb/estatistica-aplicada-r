@@ -1,12 +1,16 @@
 ---
-title: "Untitled"
+title: "Regressão Linear Simples"
 format: html
 editor: visual
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = here::here())
+```
+
 ### Regressão Linear Simples
 
-R.L simples é o modelo de regressão que contém apenas uma única v. independente. Vamos ter, então, uma v. independente, uma v. que queremos prever e uma v. dependente.AA
+R.L simples é o modelo de regressão que contém apenas uma única v. independente. Vamos ter, então, uma v. independente, uma v. que queremos prever e uma v. dependente.
 
 ### Carregando pacotes
 
@@ -14,13 +18,13 @@ R.L simples é o modelo de regressão que contém apenas uma única v. independe
 library(pacman)
 
 # Essa função faz o download dos pacotes que não temos e depois carrega eles (se já tivermos os pacotes baixados, essa função já carrega os pacotes)
-pacman::p_load(dplyr, ggplot2, car, rstatix, lmtest, ggpubr)
+pacman::p_load(dplyr, ggplot2, car, rstatix, lmtest, ggpubr, here, readr)
 ```
 
 ### Importando a base de dados
 
 ```{r}
-dados <- read.csv2("~/estatistica-aplicada-r/dados/Banco_de_Dados_11.csv")
+dados <- read.csv2("dados/Banco_de_Dados_11.csv")
 ```
 
 Essa base contém informações de 200 CDs comercializados por uma gravadora. A ideia é verificar se o gasto em publicidade é capaz de prever a venda de CDs.
@@ -48,7 +52,7 @@ Para verificar a linearidade, podemos plotar a relação entre nossas variáveis
 plot(dados$Publicidade, dados$Vendas)
 ```
 
-Aparentemente, nossas variáveis apresentam uma relação linear. No entanto, a interpretação do gráfico acima é uma pouca subjetiva.
+Aparentemente, nossas variáveis apresentam uma relação linear. No entanto, a interpretação do gráfico acima é um pouca subjetiva.
 
 Vamos ver outra maneira de verificar graficamente a linearidade das variáveis. Para isso, no entanto, vamos ter que criar nosso modelo de regressão linear.
 
@@ -82,7 +86,7 @@ Gráfico dos resíduos pelos valores previstos que permite analisar a **linearid
 
 -   Homocedasticidade: homogeneidade de variâncias. Existe homocedasticidade se a dispersão de pontos no gráfico é constante ao longo dos valores previstos de $y$ (eixo x do gráfico, fitted values)
 
-Se não existisse homocedasticidade das variancia, teríamos heterocedasticidade
+Se não existisse homocedasticidade das variâncias, teríamos heterocedasticidade.
 
 ##### 2. Normal Q-Q
 
@@ -108,9 +112,9 @@ Pressuposto da regressão linear: não deve existir resíduos outliers (mas até
 
 O que não pode acontecer é existir residuos outliers que são pontos influentes ou ponto de alavancagem (pontos que são tão outliers que estão influenciando a estimação). Existe outlier se existirem residuos abaixo de -3 ou acima de 3.
 
-Existem pontos de alavancagem se existirem residuos padronizados fora da linha vermelha pontilhada. Além disso, o R vai colocar um número de id em cima do residuo que foge do pdrão.
+Existem pontos de alavancagem se existirem residuos padronizados fora da linha vermelha pontilhada. Além disso, o R vai colocar um número de id em cima do residuo que foge do padrão.
 
-### Testes (para verificar os pressupostos)
+#### Testes (para verificar os pressupostos)
 
 Vamos, agora, plotar um gráfico de cada vez.
 
@@ -119,7 +123,7 @@ Vamos, agora, plotar um gráfico de cada vez.
 par(mfrow = c(1,1))
 ```
 
-#### 1. Normalidade dos resíduos (shapiro.test)
+##### 1. Normalidade dos resíduos (shapiro.test)
 
 O pressuposto da regressão linear é de normalidade dos **resíduos** e não das variáveis. Portanto, vamos fazer um teste de normalidade em cima dos resíduos.
 
@@ -130,7 +134,7 @@ shapiro.test(mod$residuals)
 -   H0: dist. = normal -\> p \> 0.05
 -   H1: dist. != normal -\> p \<= 0.05
 
-#### 2. Outliers nos resíduos
+##### 2. Outliers nos resíduos
 
 ```{r, results='hide'}
 # Faz para cada um dos casos
@@ -144,7 +148,7 @@ summary(rstandard(mod))
 
 Com esse resumo, é possível verificar que os resíduos não são menores que -3 e nem maiores que 3. Além disso, é um bom indicativo o fato da mediana estar próxima de 0 (zero).
 
-#### 3. Independência dos resíduos
+##### 3. Independência dos resíduos
 
 Existe uma literatura que vai dizer que satisfazer esse pressuposto é necessario somente se vamos fazer uma anailse longitudinal.
 
@@ -166,7 +170,7 @@ Hipóteses nula e alternativa:
 
 Para satisfazer esse pressuposto queremos p-value \> 0.05
 
-#### 4. Homocedasticidade (Breusch-Pagan)
+##### 4. Homocedasticidade (Breusch-Pagan)
 
 -   H0: existe homocedasticidade -\> p \> 0.05
 -   H1: NÃO existe homocedasticidade -\> p \<= 0.05
@@ -174,3 +178,74 @@ Para satisfazer esse pressuposto queremos p-value \> 0.05
 ```{r}
 bptest(mod)
 ```
+
+### Análise do Modelo
+
+```{r}
+summary(mod)
+```
+
+#### 1. Intercept
+
+-   Valor de Y quando X é zero
+-   Interpretando: Mesmo que eu invista 0 em publicidade eu posso esperar uma venda de CDs de 125
+
+#### 2. Beta (Publicidade)
+
+-   A cada 1 real gasto em publicidade temos um aumento de 0.10495 em vendas (em média)
+
+#### 3. Pr(\>\|t\|)
+
+Baseado no teste t value
+
+##### 3.1 t-value
+
+-   H0: coef = 0 -\> p \> 0.05 (VI não influencia VD)
+-   H1: coef. != 0 -\> p \<= 0.05 (VI influencia VD)
+
+#### 4 R-squared
+
+-   Interpretamos como uma porcentagem
+-   0.3634 significa 36%
+-   O quanto o modelo explica a variável dependente
+-   O investimento em publicade explica 36% das vendas
+
+#### 5. Adjusted R-squared
+
+-   É mais importante para reg. linear multipla
+
+#### 6. F-statistic
+
+-   Compara o modelo que criamos com um modelo nulo (sem previsor nenhum)
+-   `105.6 on 1 and 185 DF`
+-   `p-value: < 2.2e-16`
+
+Hipóteses:
+
+-   H0: modelo criado preve tao bem quanto o modelo nulo -\> p \> 0.05
+-   H1: existe uma diferenca enrte esses modelos -\> p \<= 0.05
+
+p \< 0.05 existe diferença entre os modelos
+
+### Gráfico de dispersão
+
+```{r}
+dados |> 
+  ggplot() +
+  # É padrão que a VD esteja no eixo X e a VI no eixo Y
+  aes(x = Publicidade, y = Vendas) +
+  geom_point() +
+  # Plot a linha do modelo
+  geom_smooth(method = "lm", col = "red") +
+  # Coloca a equação do modelo e o R^2
+  stat_regline_equation(aes(
+    label = paste(..eq.label.., ..adj.rr.label.., sep = "*plain(\",\")~~")
+    ),
+    label.x = 0, label.y = 400
+    ) +
+  theme_classic()
+```
+
+### Interpretação
+
+A regressão linear simples mostrou que o investimento em publicidade está associada a um aumento da venda de CDs. A cada R\$ 1,00 gasto em publicidade, a venda de CDs aumenta, em média, 0,1. Se fosse investido R\$ 10,00 em publicidade, seria esperado aumento de 1 (um) CD a mais, por exemplo.

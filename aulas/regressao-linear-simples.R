@@ -16,7 +16,7 @@ pacman::p_load(dplyr, ggplot2, car, rstatix, lmtest, ggpubr)
 
 # Importando a base de dados ----------------------------------------------
 
-dados <- read.csv2("dados/Banco de Dados 11.csv")
+dados <- read.csv2("dados/Banco_de_Dados_11.csv")
 
 # Essa base contém informações de 200 CDs comercializados por uma gravadora. A
 # ideia é verificar se o gasto em publicidade é capaz de prever a venda de CDs
@@ -70,7 +70,7 @@ plot(mod)
 # Permite ver se os residuos tem dist. normal
 
 # Eixo y: os residuos padronizados
-# Eixo x: os resuiduos teóricos (residuos esperados caso a dist. fosse normal)
+# Eixo x: os residuos teóricos (residuos esperados caso a dist. fosse normal)
 
 # Tem dist. normal se os pontos estão em cima da reta do grafico
 
@@ -79,7 +79,7 @@ plot(mod)
 # Gráfico mais recomendado para verificar a homocedasticidade
 # Caso exista homocedasticidade, a linha vermelha deve ser horizontal
 
-#### Residuals vs Leverage
+#### Residuals vs Leverage ----
 
 # Permite pensar se existe residuos outliers
 # E se existe pontos de alavangagem

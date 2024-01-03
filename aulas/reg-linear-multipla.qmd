@@ -1,0 +1,337 @@
+---
+title: "Regressão Linear Múltipla"
+format: html
+editor: visual
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = here::here())
+```
+
+### Regressão Linear Múltipla
+
+É uma extensão da regressão Linear Simples, pois permite incluir mais variáveis independentes para predizr o comportamento da nossa variável dependente.
+
+### Carregando pacotes
+
+```{r, message=FALSE, warning=FALSE}
+library(pacman)
+
+# Essa função faz o download dos pacotes que não temos e depois carrega eles (se já tivermos os pacotes baixados, essa função já carrega os pacotes)
+pacman::p_load(dplyr, ggplot2, car, rstatix, lmtest, ggpubr, here, readr,
+               QuantPsyc, psych, scatterplot3d)
+```
+
+### Importando a base de dados
+
+```{r}
+dados <- read.csv2("dados/Banco de Dados 12.csv")
+```
+
+Essa base contém as notas 200 alunos. A ideia é verificar se o tempo de revisão de conteúdo e o tempo de sono pré-prova são capazes de prever a nota dos alunos.
+
+```{r}
+# Visualiando as variáveis
+glimpse(dados)
+```
+
+### Construção do modelo
+
+Precisamos criar o modelo primeiro antes de partir para a verificação dos pressupostos, porque os pressupostos dizem respeito não à variável dependente, mas aos resíduos do modelo.
+
+```{r}
+mod = lm(Notas ~ Tempo_Rev + Tempo_Sono, data = dados)
+```
+
+Como saber se nosso modelo é bom? Depois vamos discutir isso. Ou seja, vamos discutir como comprar diferentes modelos.
+
+### Verificando os pressupostos
+
+#### Análise gráfica
+
+```{r}
+par(mfrow = c(2,2))
+plot(mod)
+```
+
+##### 1. Residuals vs Fitted
+
+Gráfico dos resíduos pelos valores ajustados que permite analisar a **linearidade**, Se ela existir, a linha vermelha precisa estar aproximadamente horizontal.
+
+##### 2. Normal Q-Q
+
+Permite ver se os residuos tem distribuição normal.
+
+-   Eixo y: os residuos padronizados
+-   Eixo x: os resuiduos teóricos (residuos esperados caso a dist. fosse normal)
+
+Os residuos tem distribuição normal se os pontos estão em cima da reta pontilhada do grafico
+
+##### 3. Scale-Location
+
+Gráfico mais recomendado para verificar a homocedasticidade. Caso exista homocedasticidade, a linha vermelha deve ser aproximadamente horizontal e os pontos precisam estar distribuídos em um padrão aproximademente retangular (se for, por exemplo, triangular, não estamos satisfazendo o pressuposto da homocedasticidade).
+
+-   Eixo y: raiz quadrada dos residuos padronizados
+-   Eixo x: os valores previstos
+
+##### 4. Residuals vs Leverage
+
+Permite verificar se existe resíduos outliers e se existe pontos de alavangagem.
+
+Pressuposto da regressão linear: não deve existir resíduos outliers (mas até tudo bem se tiver).
+
+O que não pode acontecer é existir residuos outliers que são pontos influentes ou ponto de alavancagem (pontos que são tão outliers que estão influenciando a estimação). Existe outlier se existirem residuos abaixo de -3 ou acima de 3.
+
+Existem pontos de alavancagem se existirem residuos padronizados fora da linha vermelha pontilhada. Além disso, o R vai colocar um número de id em cima do residuo que foge do pdrão.
+
+#### Testes (para verificar os pressupostos)
+
+Vamos, agora, plotar um gráfico de cada vez.
+
+```{r}
+# a partir de agora cada plot vai ter apenas um grafico
+par(mfrow = c(1,1))
+```
+
+##### 1. Normalidade dos resíduos (shapiro.test)
+
+O pressuposto da regressão linear é de normalidade dos **resíduos** e não das variáveis. Portanto, vamos fazer um teste de normalidade em cima dos resíduos.
+
+```{r}
+shapiro.test(mod$residuals)
+```
+
+-   H0: dist. = normal -\> p \> 0.05
+-   H1: dist. != normal -\> p \<= 0.05
+
+##### 2. Outliers nos resíduos
+
+```{r, results='hide'}
+# Faz para cada um dos casos
+rstandard(mod)
+```
+
+A função `rstandard` oferece os resíduos padronizados.
+
+```{r}
+# Faz um resumo geral (mais interessante!)
+summary(rstandard(mod))
+```
+
+Com esse resumo, é possível verificar que os resíduos não são menores que -3 e nem maiores que 3. Além disso, é um bom indicativo o fato da mediana estar próxima de 0 (zero).
+
+##### 3. Independência dos resíduos
+
+Existe uma literatura que vai dizer que satisfazer esse pressuposto é necessario somente se vamos fazer uma análise longitudinal (séries temporais).
+
+```{r}
+durbinWatsonTest(mod)
+```
+
+D-W Statistic: deve estar próxima de 2 para existir independência dos residuos tem que estar entre 1 e 3
+
+**P-value:** está verificando a correlação entre os residuos
+
+-   p-value \> 0.05: não rejeitar a hipótese nula
+-   p-value \< 0.05: rejeitar a hipótese nula
+
+Hipóteses nula e alternativa:
+
+-   H0: corr = 0 (não há autocorrelação)
+-   H1: corr != 0
+
+Para satisfazer esse pressuposto queremos p-value \> 0.05
+
+##### 4. Homocedasticidade (Breusch-Pagan)
+
+-   H0: existe homocedasticidade -\> p \> 0.05
+-   H1: NÃO existe homocedasticidade -\> p \<= 0.05
+
+```{r}
+bptest(mod)
+```
+
+##### 5. Multicolinearidade
+
+Os pressupostos acima fazem parte também da regressão linear simples, mas no caso da regressão linear múltipla, um pressuposto adicional para ser verificado é o de multicolinearidade.
+
+Multicolinearidade significa uma correlação muito alta entre as variáveis independentes.
+
+```{r}
+pairs.panels(dados)
+```
+
+O painel acima plota todas as variáveis presentes nos nossos dados. Os valores são os coeficientes de correlação entre duas variáveis. Para saber quais as duas variáveis que esses coef. estão se referindo, basta perceber que eles estão posicionados na intersecção dos gráficos.
+
+É possível analisar isto simplesmente olhando para um coeficiente de correleção, mas existe também o `vif`, que é uma medida de colinearidade.
+
+```{r}
+vif(mod)
+```
+
+Existe uma problema de multicolinearidade quando este `vif` estiver acima de 10
+
+Qual a consequência de violar o pressuposto da multicolinearidade? Violar esse pressuposto impacta a estimativa do nosso modelo. Isso gera coeficientes que não fazem sentidos (negativos, sendo que deveriam ser postiivos, por exemplo).
+
+### Comparação entre modelos
+
+Vamos criar um segundo modelo.
+
+### Criando um segundo modelo
+
+```{r}
+mod2 = lm(Notas ~ Tempo_Rev, data = dados)
+```
+
+### Análise e interpretação dos modelos
+
+#### Modelo 1
+
+```{r}
+summary(mod)
+```
+
+Observação: quando rodamos `summary()`, temos informações sobre os resíduos, mas não sobre os resíduos padronizados. Assim, não podemos fazer testar o pressuposto de ausência de outliers dos resíduos.
+
+-   **Intercept:** é o valor da VD quando todas as variáveis independentes são 0 (zero). Nem sempre isso é interpretável. No caso, significaria dizer que temos a nota do aluno quando ele teve 0 tempo de revisão e 0 tempo de sono, o que não é muito coerente com a realidade.
+
+-   **Tempo_Rev:** indica que a cada 01 (um) minuto a mais de tempo de revisão, a nota do aluno aumenta 0.099101.
+
+-   **Tempo_Sono:** indica que a cada 01 (uma) hora de sono a mais, a nota do aluno aumenta 0.350658.
+
+**Importante:** Só é possível interpretar os coeficientes `Tempo_Rev` e `Tempo_Sono` se `Pr(>|t|)` permitir rejeitarmos a hipótese nula:
+
+-   H0: coeficiente = 0 -\> p \> 0.05
+
+-   H1: coeficiente != 0 -\> p \<= 0.05
+
+Outras coisas interessantes de se analisar no output do comando `summary()`.
+
+##### F-statistic
+
+Compara o modelo que criamos com um modelo nulo (sem previsor nenhum) - Retorna os graus de liberdade - Retorna o `p-value`que no caso foi `< 2.2e-16`
+
+Hipóteses:
+
+-   H0: modelo criado preve tao bem quanto o modelo nulo -\> p \> 0.05
+
+-   H1: existe uma diferenca enrte esses modelos -\> p \<= 0.05
+
+p \< 0.05 existe diferença entre os modelos
+
+##### Adjusted R-squared
+
+Porcentagem da variação dos dados é explicada por esse modelo. Ajuda a comparar modelos. Mas há toda uma discussão sobre a validade dessa medida.
+
+O Adjusted R-squared é melhor para regressão linear múltipla porque ele corrige para a quantidade de variáveis, o que permite comprar modelos que têm quantidades de VI diferentes.
+
+#### Modelo 2
+
+```{r}
+summary(mod2)
+```
+
+Conforme o intuito, aqui, é comparar os modelos, vamos olhar somente para o Adjusted R-squared. Veja que neste segundo modelo, o R-quadrado é menor, ou seja, ele explicaria menos do que o modelo 1.
+
+### Comparação entre as variáveis independentes
+
+Precisamos sempre ter em mente qual a unidade de medida das nossas variáveis independentes. No caso de Tempo_Rev e Tempo_sono, a unidade de meida está em minutos no primeiro e caso e em horas no segundo caso.
+
+Para saber qual variável tem mais influência sobre a variável dependente, temos que olhar para o coeficiente padrozniado.
+
+#### Obtenção dos coeficientes padronizados
+
+```{r}
+lm.beta(mod)
+```
+
+```{r}
+lm.beta(mod2)
+```
+
+### Obtenção dos intervalo de 95% de confiança para os coeficientes
+
+```{r}
+confint(mod)
+```
+
+Coeficientes que não incluem o zero demonstra que eles são estatisticamente diferentes de zero.
+
+```{r}
+confint(mod2)
+```
+
+### Comparação de modelos com AIC e BIC - comperação entre quaisquer modelos
+
+```{r}
+AIC(mod, mod2)
+```
+
+**Interpretação:** Quanto menor, melhor. O resultado é a variância não explicada pelo modelo.
+
+```{r}
+BIC(mod, mod2)
+```
+
+**Interpretação:** Quanto menor, melhor.
+
+### Comparação de modelos aninhados
+
+O que significa modelos aninhados?
+
+#### ANOVA
+
+```{r}
+anova(mod, mod2)
+```
+
+Faz uma análsie de variância e compara os dois modelos e fornece um valor de `Pr(>F)`.
+
+-   H0: os modelos são iguais se P \> 0.05
+-   H1: os modelos são diferentes se P \< 0.05
+
+O melhor modelo será o com menor valor de RSS (Residual Sum of Squares).
+
+### Gráfico de dispersão
+
+```{r}
+graph <- scatterplot3d::scatterplot3d(dados$Notas ~ dados$Tempo_Rev + dados$Tempo_Sono,
+                                     # Escollhe tipo de ponto
+                                     pch = 16,
+                                     # Angulo que o gráfico vai aparecer
+                                     angle = 30,
+                                     # Cor
+                                     color = "steelblue",
+                                     # Tira as margens
+                                     box = FALSE,
+                                     # rótulo do eixo x
+                                     xlab = "Tempo de revisão",
+                                     # rótulo do eixo y
+                                     ylab = "Tempo de sono",
+                                     zlab = "Notas"
+                                     )
+
+graph$plane3d(mod,
+              # Cor
+              col = "black",
+              draw_polygon = TRUE
+              )
+```
+
+### Métodos de seleção de modelos
+
+```{r}
+pacman::p_load(MASS)
+
+mod.inicial <- lm(Notas ~ Tempo_Sono + Tempo_Rev, data = dados)
+mod.simples <- lm(Notas ~ 1, data = dados)
+
+# Pedindo paar o R criar um modelo seguindo critérios matemáticos (isso não é muito recomendado)
+stepAIC(mod.inicial, scope = list(upper = mod.inicial,
+                                  lower = mod.simples),
+        direction = "backward")
+```
+
+### Conclusão
+
+A nossa regressão linear múltipla mostrou que o tempo de revisão e o tempo de sono têm efeito sobre as notas. A cada um minuto gasto revisando contéudo, a nota aumenta, em média, 0,1 (t = 10,005; p \< 0,001). Já a cada uma hora de sono, a nota aumenta, em média, o,35 (t = 4,026; p \< 0,001).

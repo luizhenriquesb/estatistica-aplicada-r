@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.433">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Regressão Linear Simples</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="reg-linear-simples_files/libs/clipboard/clipboard.min.js"></script>
+<script src="reg-linear-simples_files/libs/quarto-html/quarto.js"></script>
+<script src="reg-linear-simples_files/libs/quarto-html/popper.min.js"></script>
+<script src="reg-linear-simples_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="reg-linear-simples_files/libs/quarto-html/anchor.min.js"></script>
+<link href="reg-linear-simples_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="reg-linear-simples_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="reg-linear-simples_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="reg-linear-simples_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="reg-linear-simples_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Regressão Linear Simples</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="regressão-linear-simples" class="level3">
+<h3 class="anchored" data-anchor-id="regressão-linear-simples">Regressão Linear Simples</h3>
+<p>R.L simples é o modelo de regressão que contém apenas uma única v. independente. Vamos ter, então, uma v. independente, uma v. que queremos prever e uma v. dependente.AA</p>
+</section>
+<section id="carregando-pacotes" class="level3">
+<h3 class="anchored" data-anchor-id="carregando-pacotes">Carregando pacotes</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pacman)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Essa função faz o download dos pacotes que não temos e depois carrega eles (se já tivermos os pacotes baixados, essa função já carrega os pacotes)</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(dplyr, ggplot2, car, rstatix, lmtest, ggpubr, here, readr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="importando-a-base-de-dados" class="level3">
+<h3 class="anchored" data-anchor-id="importando-a-base-de-dados">Importando a base de dados</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>dados <span class="ot">&lt;-</span> <span class="fu">read.csv2</span>(<span class="st">"dados/Banco_de_Dados_11.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Essa base contém informações de 200 CDs comercializados por uma gravadora. A ideia é verificar se o gasto em publicidade é capaz de prever a venda de CDs.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualiando as variáveis</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(dados)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 187
+Columns: 2
+$ Publicidade &lt;dbl&gt; 985.69, 1445.56, 1188.19, 574.51, 568.95, 471.81, 537.35, …
+$ Vendas      &lt;int&gt; 120, 360, 270, 220, 170, 70, 210, 200, 70, 150, 190, 240, …</code></pre>
+</div>
+</div>
+</section>
+<section id="verificação-dos-pressupostos-para-a-regressão-linear" class="level3">
+<h3 class="anchored" data-anchor-id="verificação-dos-pressupostos-para-a-regressão-linear">Verificação dos pressupostos para a regressão linear</h3>
+<p>A validade do modelo de regressão linear depende da satisfação de alguns pressupostos.</p>
+<section id="relação-linear-entre-a-variável-dependente-e-a-independente" class="level4">
+<h4 class="anchored" data-anchor-id="relação-linear-entre-a-variável-dependente-e-a-independente">Relação linear entre a variável dependente e a independente</h4>
+<p>É necessário existir uma relação linear entre a VD e a VI. Em nosso exemplo, temos:</p>
+<ul>
+<li><p>V. dependente: variável que queremos prever (venda)</p></li>
+<li><p>V. independente: variável que imaginamos influenciar a venda (publicidade)</p></li>
+</ul>
+<p>Para verificar a linearidade, podemos plotar a relação entre nossas variáveis em um gráfico.</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(dados<span class="sc">$</span>Publicidade, dados<span class="sc">$</span>Vendas)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="reg-linear-simples_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Aparentemente, nossas variáveis apresentam uma relação linear. No entanto, a interpretação do gráfico acima é uma pouca subjetiva.</p>
+<p>Vamos ver outra maneira de verificar graficamente a linearidade das variáveis. Para isso, no entanto, vamos ter que criar nosso modelo de regressão linear.</p>
+</section>
+<section id="construção-do-modelo" class="level4">
+<h4 class="anchored" data-anchor-id="construção-do-modelo">Construção do modelo</h4>
+<p>A função <code>lm()</code> é uma função de regressão linear (linear model). A sintaxe dessa função é a seguinte: <code>lm(variável dependente ~ variável independente, data = dados)</code></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Criando nosso modelo</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(Vendas <span class="sc">~</span> Publicidade, <span class="at">data =</span> dados)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="análise-gráfica-para-verificar-os-pressupostos" class="level4">
+<h4 class="anchored" data-anchor-id="análise-gráfica-para-verificar-os-pressupostos">Análise gráfica (para verificar os pressupostos)</h4>
+<p>O código abaixo plota quatro gráficos que nos ajudarão a analisar os pressupostos.</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plota os quatro gráficos numa mesma imagem</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>)) <span class="co"># 2,2 = 2 linhas e 2 colunas</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mod)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="reg-linear-simples_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Para uma interpretação detalhada: https://library.virginia.edu/data/articles/diagnostic-plots.</p>
+<section id="residuals-vs-fitted" class="level5">
+<h5 class="anchored" data-anchor-id="residuals-vs-fitted">1. Residuals vs Fitted</h5>
+<p>Gráfico dos resíduos pelos valores previstos que permite analisar a <strong>linearidade</strong> e a <strong>homocedasticidade</strong>.</p>
+<ul>
+<li><p>Linearidade: verificarmos a lineralidade pela linha vermelha. Se ela estiver aprox. horizontal, temos uma relação linear</p></li>
+<li><p>Homocedasticidade: homogeneidade de variâncias. Existe homocedasticidade se a dispersão de pontos no gráfico é constante ao longo dos valores previstos de <span class="math inline">\(y\)</span> (eixo x do gráfico, fitted values)</p></li>
+</ul>
+<p>Se não existisse homocedasticidade das variancia, teríamos heterocedasticidade</p>
+</section>
+<section id="normal-q-q" class="level5">
+<h5 class="anchored" data-anchor-id="normal-q-q">2. Normal Q-Q</h5>
+<p>Permite ver se os residuos tem distribuição normal</p>
+<ul>
+<li>Eixo y: os residuos padronizados</li>
+<li>Eixo x: os resuiduos teóricos (residuos esperados caso a dist. fosse normal)</li>
+</ul>
+<p>Os residuos tem distribuição normal se os pontos estão em cima da reta pontilhada do grafico</p>
+</section>
+<section id="scale-location" class="level5">
+<h5 class="anchored" data-anchor-id="scale-location">3. Scale-Location</h5>
+<p>Gráfico mais recomendado para verificar a homocedasticidade. Caso exista homocedasticidade, a linha vermelha deve ser aproximadamente horizontal.</p>
+<ul>
+<li>Eixo y: raiz quadrada dos residuos padronizados</li>
+<li>Eixo x: os valores previstos</li>
+</ul>
+</section>
+<section id="residuals-vs-leverage" class="level5">
+<h5 class="anchored" data-anchor-id="residuals-vs-leverage">4. Residuals vs Leverage</h5>
+<p>Permite verificar se existe resíduos outliers e se existe pontos de alavangagem.</p>
+<p>Pressuposto da regressão linear: não deve existir resíduos outliers (mas até tudo bem se tiver).</p>
+<p>O que não pode acontecer é existir residuos outliers que são pontos influentes ou ponto de alavancagem (pontos que são tão outliers que estão influenciando a estimação). Existe outlier se existirem residuos abaixo de -3 ou acima de 3.</p>
+<p>Existem pontos de alavancagem se existirem residuos padronizados fora da linha vermelha pontilhada. Além disso, o R vai colocar um número de id em cima do residuo que foge do pdrão.</p>
+</section>
+</section>
+<section id="testes-para-verificar-os-pressupostos" class="level4">
+<h4 class="anchored" data-anchor-id="testes-para-verificar-os-pressupostos">Testes (para verificar os pressupostos)</h4>
+<p>Vamos, agora, plotar um gráfico de cada vez.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># a partir de agora cada plot vai ter apenas um grafico</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="normalidade-dos-resíduos-shapiro.test" class="level5">
+<h5 class="anchored" data-anchor-id="normalidade-dos-resíduos-shapiro.test">1. Normalidade dos resíduos (shapiro.test)</h5>
+<p>O pressuposto da regressão linear é de normalidade dos <strong>resíduos</strong> e não das variáveis. Portanto, vamos fazer um teste de normalidade em cima dos resíduos.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">shapiro.test</span>(mod<span class="sc">$</span>residuals)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Shapiro-Wilk normality test
+
+data:  mod$residuals
+W = 0.99193, p-value = 0.3856</code></pre>
+</div>
+</div>
+<ul>
+<li>H0: dist. = normal -&gt; p &gt; 0.05</li>
+<li>H1: dist. != normal -&gt; p &lt;= 0.05</li>
+</ul>
+</section>
+<section id="outliers-nos-resíduos" class="level5">
+<h5 class="anchored" data-anchor-id="outliers-nos-resíduos">2. Outliers nos resíduos</h5>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Faz para cada um dos casos</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rstandard</span>(mod)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Faz um resumo geral (mais interessante!)</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(<span class="fu">rstandard</span>(mod))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      Min.    1st Qu.     Median       Mean    3rd Qu.       Max. 
+-2.1981347 -0.7064734  0.0392186 -0.0000075  0.6828619  2.3753897 </code></pre>
+</div>
+</div>
+<p>Com esse resumo, é possível verificar que os resíduos não são menores que -3 e nem maiores que 3. Além disso, é um bom indicativo o fato da mediana estar próxima de 0 (zero).</p>
+</section>
+<section id="independência-dos-resíduos" class="level5">
+<h5 class="anchored" data-anchor-id="independência-dos-resíduos">3. Independência dos resíduos</h5>
+<p>Existe uma literatura que vai dizer que satisfazer esse pressuposto é necessario somente se vamos fazer uma anailse longitudinal.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">durbinWatsonTest</span>(mod)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> lag Autocorrelation D-W Statistic p-value
+   1     -0.01039454       1.98891   0.884
+ Alternative hypothesis: rho != 0</code></pre>
+</div>
+</div>
+<p>D-W Statistic: deve estar próxima de 2 para existir independência dos residuos tem que estar entre 1 e 3</p>
+<p><strong>P-value:</strong> está verificando a correlação entre os residuos</p>
+<ul>
+<li>p-value &gt; 0.05: não rejeitar a hipótese nula</li>
+<li>p-value &lt; 0.05: rejeitar a hipótese nula</li>
+</ul>
+<p>Hipóteses nula e alternativa:</p>
+<ul>
+<li>H0: corr = 0</li>
+<li>H1: corr != 0</li>
+</ul>
+<p>Para satisfazer esse pressuposto queremos p-value &gt; 0.05</p>
+</section>
+<section id="homocedasticidade-breusch-pagan" class="level5">
+<h5 class="anchored" data-anchor-id="homocedasticidade-breusch-pagan">4. Homocedasticidade (Breusch-Pagan)</h5>
+<ul>
+<li>H0: existe homocedasticidade -&gt; p &gt; 0.05</li>
+<li>H1: NÃO existe homocedasticidade -&gt; p &lt;= 0.05</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bptest</span>(mod)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    studentized Breusch-Pagan test
+
+data:  mod
+BP = 1.4245, df = 1, p-value = 0.2327</code></pre>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="análise-do-modelo" class="level3">
+<h3 class="anchored" data-anchor-id="análise-do-modelo">Análise do Modelo</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mod)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = Vendas ~ Publicidade, data = dados)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-131.840  -42.283    2.344   40.945  142.455 
+
+Coefficients:
+             Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept) 125.17951    7.43140   16.84   &lt;2e-16 ***
+Publicidade   0.10495    0.01021   10.28   &lt;2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 60.14 on 185 degrees of freedom
+Multiple R-squared:  0.3634,    Adjusted R-squared:   0.36 
+F-statistic: 105.6 on 1 and 185 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<section id="intercept" class="level4">
+<h4 class="anchored" data-anchor-id="intercept">1. Intercept</h4>
+<ul>
+<li>Valor de Y quando X é zero</li>
+<li>Interpretando: Mesmo que eu invista 0 em publicidade eu posso esperar uma venda de CDs de 125</li>
+</ul>
+</section>
+<section id="beta-publicidade" class="level4">
+<h4 class="anchored" data-anchor-id="beta-publicidade">2. Beta (Publicidade)</h4>
+<ul>
+<li>A cada 1 real gasto em publicidade temos um aumento de 0.10495 em vendas (em média)</li>
+</ul>
+</section>
+<section id="prt" class="level4">
+<h4 class="anchored" data-anchor-id="prt">3. Pr(&gt;|t|)</h4>
+<p>Baseado no teste t value</p>
+<section id="t-value" class="level5">
+<h5 class="anchored" data-anchor-id="t-value">3.1 t-value</h5>
+<ul>
+<li>H0: coef = 0 -&gt; p &gt; 0.05 (VI não influencia VD)</li>
+<li>H1: coef. != 0 -&gt; p &lt;= 0.05 (VI influencia VD)</li>
+</ul>
+</section>
+</section>
+<section id="r-squared" class="level4">
+<h4 class="anchored" data-anchor-id="r-squared">4 R-squared</h4>
+<ul>
+<li>Interpretamos como uma porcentagem</li>
+<li>0.3634 significa 36%</li>
+<li>O quanto o modelo explica a variável dependente</li>
+<li>O investimento em publicade explica 36% das vendas</li>
+</ul>
+</section>
+<section id="adjusted-r-squared" class="level4">
+<h4 class="anchored" data-anchor-id="adjusted-r-squared">5. Adjusted R-squared</h4>
+<ul>
+<li>É mais importante para reg. linear multipla</li>
+</ul>
+</section>
+<section id="f-statistic" class="level4">
+<h4 class="anchored" data-anchor-id="f-statistic">6. F-statistic</h4>
+<ul>
+<li>Compara o modelo que criamos com um modelo nulo (sem previsor nenhum)</li>
+<li><code>105.6 on 1 and 185 DF</code></li>
+<li><code>p-value: &lt; 2.2e-16</code></li>
+</ul>
+<p>Hipóteses:</p>
+<ul>
+<li>H0: modelo criado preve tao bem quanto o modelo nulo -&gt; p &gt; 0.05</li>
+<li>H1: existe uma diferenca enrte esses modelos -&gt; p &lt;= 0.05</li>
+</ul>
+<p>p &lt; 0.05 existe diferença entre os modelos</p>
+</section>
+</section>
+<section id="gráfico-de-dispersão" class="level3">
+<h3 class="anchored" data-anchor-id="gráfico-de-dispersão">Gráfico de dispersão</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>dados <span class="sc">|&gt;</span> </span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># É padrão que a VD esteja no eixo X e a VI no eixo Y</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> Publicidade, <span class="at">y =</span> Vendas) <span class="sc">+</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Plot a linha do modelo</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">col =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Coloca a equação do modelo e o R^2</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_regline_equation</span>(<span class="fu">aes</span>(</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">label =</span> <span class="fu">paste</span>(..eq.label.., ..adj.rr.label.., <span class="at">sep =</span> <span class="st">"*plain(</span><span class="sc">\"</span><span class="st">,</span><span class="sc">\"</span><span class="st">)~~"</span>)</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">label.x =</span> <span class="dv">0</span>, <span class="at">label.y =</span> <span class="dv">400</span></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: The dot-dot notation (`..eq.label..`) was deprecated in ggplot2 3.4.0.
+ℹ Please use `after_stat(eq.label)` instead.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="reg-linear-simples_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
