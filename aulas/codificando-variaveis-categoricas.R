@@ -1,4 +1,4 @@
-
+ 
 # Codificando variáveis categóricas no R ----------------------------------
 
 # Link para o vídeo: <https://www.youtube.com/watch?v=0afvtQyTxjc&list=PLOw62cBQ5j9VE9X4cCCfFMjW_hhEAJUhU&index=3>
