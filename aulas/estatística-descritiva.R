@@ -1,4 +1,4 @@
-
+ 
 # Estatística descritiva no R - Tabelas -----------------------------------
 
 # Pacotes ----
