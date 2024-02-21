@@ -1,4 +1,4 @@
-
+ 
 # Teste-t para duas amostras independentes no R ---------------------------
 
 # Com base no banco de dados abaixo, verifique se a posição que o aluno 
